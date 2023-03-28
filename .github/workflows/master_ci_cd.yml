@@ -1,11 +1,11 @@
-name: release CI, CD workflow 
+name: master CI, CD workflow 
 on: 
   push:
     branches: [ "master"]
   pull_request:
     branches: [ "master"]
 jobs:
-  master_ci_cd:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,10 +13,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - name: npm install
+      - name: nmp install
         run: npm install
-      - name: CI
-        run: npm ci
 #      - name: Test
 #        run: |
 #          npm test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
@@ -41,7 +39,7 @@ jobs:
           
       - name: cp angular build to container
         run: |
-          docker cp dist/.  serving_base:/usr/local/apache2/htdocs
+          docker cp build/.  serving_base:/usr/local/apache2/htdocs
           
       - name: Build the custom Docker image
         run: docker commit --change "ENV MODEL_NAME ${{secrets.MODEL_NAME}}" serving_base ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:${{github.sha}}
@@ -85,4 +83,3 @@ jobs:
           namespace: ${{secrets.OKTETO_NAMESPACE }}
           manifest: manifests/k8s.yaml
           tag: ${{ secrets.DOCKER_USERNAME }}/${{secrets.MODEL_NAME}}:${{github.sha}}
-          
